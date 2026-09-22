@@ -31,11 +31,16 @@ SaaS multi-tenant / white-label para prefeituras e secretarias municipais.
 - **Fase 09 concluida:** programas municipais. Modelos `Program` e
   `ProgramBeneficiary` (secoes 24-25); `approvalDate`/`deliveryDate`
   preenchidos automaticamente ao aprovar/entregar.
-- **Frontend (parcial):** `/login` e `/dashboard` funcionais no `apps/web`,
-  conectados a API real (ver secao Frontend abaixo). Demais telas
-  administrativas ficam para as Fases 11-12 do roadmap (Dashboards/Portal).
+- **Fase 10 concluida:** GIS. `GET /gis/map` agrega propriedades, ocorrencias,
+  solicitacoes e servicos de maquina com coordenadas num GeoJSON; `GET
+  /gis/properties/:id` retorna o detalhe da secao 30 (produtor, talhoes,
+  solicitacoes, servicos, programas). Mapa real (`/dashboard/mapa`, MapLibre
+  GL + tiles OSM) no frontend.
+- **Frontend (parcial):** `/login`, `/dashboard` e `/dashboard/mapa`
+  funcionais no `apps/web`, conectados a API real (ver secao Frontend
+  abaixo). Demais telas administrativas ficam para a Fase 11 (Dashboards).
 
-Ainda faltam GIS e os demais modulos de dominio, conforme o
+Ainda faltam os demais modulos de dominio, conforme o
 roadmap da especificacao.
 
 ## Estrutura
@@ -198,6 +203,9 @@ GET    /programs/:programId/beneficiaries               (qualquer perfil autenti
 GET    /programs/:programId/beneficiaries/:id
 POST   /programs/:programId/beneficiaries               (SUPER_ADMIN, MUNICIPAL_ADMIN, SECRETARY, TECHNICIAN)
 PATCH  /programs/:programId/beneficiaries/:id           (idem; APPROVED/DELIVERED preenchem approvalDate/deliveryDate)
+
+GET    /gis/map                                         (qualquer perfil autenticado do municipio; ?layers=properties,occurrences,service-requests,machine-services)
+GET    /gis/properties/:id                              (detalhe agregado: produtores, talhoes, solicitacoes, servicos, programas)
 ```
 
 Todas as rotas exigem `Authorization: Bearer <accessToken>`, exceto as
@@ -227,15 +235,20 @@ historico").
 ## Frontend
 
 `apps/web` tem hoje `/login` (formulario de e-mail/senha, chama
-`POST /auth/login` direto) e `/dashboard` (mostra e-mail/perfil/municipio do
+`POST /auth/login` direto), `/dashboard` (mostra e-mail/perfil/municipio do
 usuario logado, decodificados do JWT no client apenas para exibicao — a
-validacao real e sempre no backend). Tokens ficam em `localStorage` via
-Zustand (`src/stores/auth-store.ts`) com persistencia. Isso e aceitavel para
-testes locais, mas nao e o ideal de seguranca para producao (`localStorage`
-fica exposto a XSS); mover para cookies `httpOnly` fica para uma fase de
-hardening. Nao ha ainda renovacao automatica via refresh token — o access
-token expirado exige novo login. As demais telas administrativas (CRUD de
-municipios/produtores/propriedades/etc.) nao existem ainda — so a API REST.
+validacao real e sempre no backend) e `/dashboard/mapa` (MapLibre GL +
+tiles do OpenStreetMap, consumindo `GET /gis/map`; clicar num marker de
+propriedade busca `GET /gis/properties/:id` e mostra o painel lateral). Um
+`SUPER_ADMIN` (sem `municipalityId` proprio) precisa digitar manualmente o
+ID do municipio no mapa — nao ha ainda seletor de municipio na UI. Tokens
+ficam em `localStorage` via Zustand (`src/stores/auth-store.ts`) com
+persistencia. Isso e aceitavel para testes locais, mas nao e o ideal de
+seguranca para producao (`localStorage` fica exposto a XSS); mover para
+cookies `httpOnly` fica para uma fase de hardening. Nao ha ainda renovacao
+automatica via refresh token — o access token expirado exige novo login. As
+demais telas administrativas (CRUD de municipios/produtores/propriedades/
+etc.) nao existem ainda — so a API REST.
 
 ## Auth
 

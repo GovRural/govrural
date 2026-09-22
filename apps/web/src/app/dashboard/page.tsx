@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -65,7 +66,10 @@ export default function DashboardPage() {
               {user.municipalityId ?? "Sem municipio (plataforma)"}
             </p>
           </div>
-          <Button variant="outline" onClick={handleLogout} className="mt-4">
+          <Link href="/dashboard/mapa" className={buttonVariants({ className: "mt-4" })}>
+            Ver mapa
+          </Link>
+          <Button variant="outline" onClick={handleLogout}>
             Sair
           </Button>
         </CardContent>
