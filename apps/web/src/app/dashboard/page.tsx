@@ -66,7 +66,13 @@ export default function DashboardPage() {
               {user.municipalityId ?? "Sem municipio (plataforma)"}
             </p>
           </div>
-          <Link href="/dashboard/mapa" className={buttonVariants({ className: "mt-4" })}>
+          <Link
+            href="/dashboard/indicadores"
+            className={buttonVariants({ className: "mt-4" })}
+          >
+            Ver indicadores
+          </Link>
+          <Link href="/dashboard/mapa" className={buttonVariants({ variant: "outline" })}>
             Ver mapa
           </Link>
           <Button variant="outline" onClick={handleLogout}>

@@ -7,6 +7,7 @@ import { RolesGuard } from './auth/guards/roles.guard.js';
 import { AuditModule } from './common/audit/audit.module.js';
 import { HealthModule } from './common/health/health.module.js';
 import { PrismaModule } from './common/prisma/prisma.module.js';
+import { DashboardsModule } from './dashboards/dashboards.module.js';
 import { DepartmentsModule } from './departments/departments.module.js';
 import { GisModule } from './gis/gis.module.js';
 import { MachineServicesModule } from './machine-services/machine-services.module.js';
@@ -45,6 +46,7 @@ import { UsersModule } from './users/users.module.js';
     ProgramsModule,
     ProgramBeneficiariesModule,
     GisModule,
+    DashboardsModule,
   ],
   providers: [
     // Ordem importa: JwtAuthGuard popula request.user antes do RolesGuard

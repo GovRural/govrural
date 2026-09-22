@@ -36,12 +36,17 @@ SaaS multi-tenant / white-label para prefeituras e secretarias municipais.
   /gis/properties/:id` retorna o detalhe da secao 30 (produtor, talhoes,
   solicitacoes, servicos, programas). Mapa real (`/dashboard/mapa`, MapLibre
   GL + tiles OSM) no frontend.
-- **Frontend (parcial):** `/login`, `/dashboard` e `/dashboard/mapa`
-  funcionais no `apps/web`, conectados a API real (ver secao Frontend
-  abaixo). Demais telas administrativas ficam para a Fase 11 (Dashboards).
+- **Fase 11 concluida:** dashboards. `GET /dashboard/{summary,service-requests,
+  machines,programs,occurrences}` com as formulas da secao 42 (produtores
+  atendidos, horas/custo de maquina, tempo medio de atendimento, taxa de
+  conclusao). Tela `/dashboard/indicadores` com stat tiles (layout da
+  secao 65).
+- **Frontend (parcial):** `/login`, `/dashboard`, `/dashboard/mapa` e
+  `/dashboard/indicadores` funcionais no `apps/web`, conectados a API real
+  (ver secao Frontend abaixo).
 
-Ainda faltam os demais modulos de dominio, conforme o
-roadmap da especificacao.
+Ainda faltam produtores/programas via WhatsApp, portal do produtor e os
+demais modulos de dominio, conforme o roadmap da especificacao.
 
 ## Estrutura
 
@@ -206,6 +211,12 @@ PATCH  /programs/:programId/beneficiaries/:id           (idem; APPROVED/DELIVERE
 
 GET    /gis/map                                         (qualquer perfil autenticado do municipio; ?layers=properties,occurrences,service-requests,machine-services)
 GET    /gis/properties/:id                              (detalhe agregado: produtores, talhoes, solicitacoes, servicos, programas)
+
+GET    /dashboard/summary                               (qualquer perfil autenticado do municipio; indicadores gerais da secao 39)
+GET    /dashboard/service-requests                      (tempo medio de atendimento, taxa de conclusao, por status - secao 42)
+GET    /dashboard/machines                               (horas/custo por maquina)
+GET    /dashboard/programs                               (beneficiarios/valor entregue por programa)
+GET    /dashboard/occurrences                            (contagem por tipo/prioridade/status)
 ```
 
 Todas as rotas exigem `Authorization: Bearer <accessToken>`, exceto as
