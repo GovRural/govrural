@@ -1,0 +1,19 @@
+{
+  "name": "govrural",
+  "private": true,
+  "version": "0.1.0",
+  "description": "GovRural - Plataforma de Gestao, Atendimento e Inteligencia do Meio Rural para Municipios",
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@12.5.1",
+  "scripts": {
+    "dev:api": "pnpm --filter @govrural/api dev",
+    "dev:web": "pnpm --filter @govrural/web dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  }
+}
