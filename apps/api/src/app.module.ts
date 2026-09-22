@@ -9,9 +9,12 @@ import { HealthModule } from './common/health/health.module.js';
 import { PrismaModule } from './common/prisma/prisma.module.js';
 import { DepartmentsModule } from './departments/departments.module.js';
 import { MunicipalitiesModule } from './municipalities/municipalities.module.js';
+import { OccurrencesModule } from './occurrences/occurrences.module.js';
 import { ProducersModule } from './producers/producers.module.js';
 import { PropertiesModule } from './properties/properties.module.js';
 import { PropertyAreasModule } from './property-areas/property-areas.module.js';
+import { ServiceRequestsModule } from './service-requests/service-requests.module.js';
+import { ServiceTypesModule } from './service-types/service-types.module.js';
 import { UsersModule } from './users/users.module.js';
 
 @Module({
@@ -29,6 +32,9 @@ import { UsersModule } from './users/users.module.js';
     ProducersModule,
     PropertiesModule,
     PropertyAreasModule,
+    ServiceTypesModule,
+    ServiceRequestsModule,
+    OccurrencesModule,
   ],
   providers: [
     // Ordem importa: JwtAuthGuard popula request.user antes do RolesGuard

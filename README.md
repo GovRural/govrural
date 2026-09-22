@@ -19,9 +19,15 @@ SaaS multi-tenant / white-label para prefeituras e secretarias municipais.
 - **Fase 05 concluida:** propriedades. Modelos `RuralProperty` (secao 12),
   `ProducerProperty` (vinculo produtor<->propriedade com historico, secao 13)
   e `PropertyArea` (talhoes, secao 14).
+- **Fase 06 concluida:** solicitacoes de servico. Modelos `ServiceType`,
+  `ServiceRequest` (protocolo `GR-{ano}-{sequencial}` por municipio) e
+  `ServiceRequestHistory` (secoes 17-20).
+- **Fase 07 concluida:** ocorrencias rurais. Modelo `RuralOccurrence`
+  (secoes 26-27). Estradas/pontes (secoes 28-29) ficam para uma fase pos-MVP
+  (roadmap macro, secao 63).
 
-Ainda faltam solicitacoes de servico, ocorrencias, maquinas, programas, GIS
-e os demais modulos de dominio, conforme o roadmap da especificacao.
+Ainda faltam maquinas, programas, GIS e os demais modulos de dominio,
+conforme o roadmap da especificacao.
 
 ## Estrutura
 
@@ -46,7 +52,17 @@ govrural/
 
 - Node.js >= 20
 - pnpm (`npm install -g pnpm`)
-- Docker Desktop (para Postgres/PostGIS + Redis locais)
+- Um Postgres com PostGIS habilitado. Duas opcoes:
+  - **Docker Desktop** (`docker-compose.yml` na raiz) — Postgres/PostGIS + Redis locais.
+  - **Supabase** (ou outro Postgres gerenciado) — so o Postgres e necessario;
+    Redis so afeta a sub-checagem `redis` do `/health`, nenhuma feature real
+    depende dele ainda (BullMQ e de fases futuras). No Supabase, habilite a
+    extensao `postgis` em Database → Extensions, e use a connection string de
+    **conexao direta ou "Session pooler"** (nao o "Transaction pooler" — o
+    modo transaction do PgBouncer conflita com os prepared statements do
+    Prisma). A conexao direta (`db.[ref].supabase.co`) e IPv6-only por
+    padrao; se sua rede nao rotear IPv6, use o Session pooler
+    (`aws-0-[regiao].pooler.supabase.com:5432`, usuario `postgres.[ref]`).
 
 ## Setup local
 
@@ -132,6 +148,24 @@ GET    /properties/:propertyId/areas/:id
 POST   /properties/:propertyId/areas        (SUPER_ADMIN, MUNICIPAL_ADMIN, TECHNICIAN)
 PATCH  /properties/:propertyId/areas/:id    (SUPER_ADMIN, MUNICIPAL_ADMIN, TECHNICIAN)
 DELETE /properties/:propertyId/areas/:id    (SUPER_ADMIN, MUNICIPAL_ADMIN, TECHNICIAN; soft delete)
+
+GET    /service-types                       (qualquer perfil autenticado do municipio)
+GET    /service-types/:id
+POST   /service-types                        (SUPER_ADMIN, MUNICIPAL_ADMIN)
+PATCH  /service-types/:id                    (SUPER_ADMIN, MUNICIPAL_ADMIN)
+DELETE /service-types/:id                    (SUPER_ADMIN, MUNICIPAL_ADMIN; soft delete)
+
+GET    /service-requests                     (qualquer perfil autenticado do municipio; ?page&limit&search&status&priority&producerId)
+GET    /service-requests/:id
+GET    /service-requests/:id/history         (historico completo de status, nunca apagado)
+POST   /service-requests                     (SUPER_ADMIN, MUNICIPAL_ADMIN, SECRETARY, TECHNICIAN; gera protocolo automaticamente)
+PATCH  /service-requests/:id                 (SUPER_ADMIN, MUNICIPAL_ADMIN, SECRETARY, TECHNICIAN; bloqueado se status final)
+PATCH  /service-requests/:id/status          (SUPER_ADMIN, MUNICIPAL_ADMIN, SECRETARY, TECHNICIAN; grava historico a cada mudanca)
+
+GET    /occurrences                          (qualquer perfil autenticado do municipio; ?page&limit&search&type&priority&status)
+GET    /occurrences/:id
+POST   /occurrences                          (qualquer perfil interno, incl. MACHINE_OPERATOR; qualquer servidor pode reportar)
+PATCH  /occurrences/:id                      (SUPER_ADMIN, MUNICIPAL_ADMIN, SECRETARY, TECHNICIAN; RESOLVED preenche resolvedAt, reabrir limpa)
 ```
 
 Todas as rotas exigem `Authorization: Bearer <accessToken>`, exceto as
@@ -149,6 +183,14 @@ por enquanto — o poligono completo da propriedade (`geometry`, PostGIS) fica
 para a Fase GIS dedicada. `propertyType` (secao 12) e texto livre, ja que a
 especificacao nao lista valores fixos para esse campo (diferente de
 `ownershipType`, que tem enum com os valores listados na secao 12).
+
+`ServiceRequest.status` nunca e alterado por um PATCH generico — sempre via
+`PATCH /service-requests/:id/status`, que grava `ServiceRequestHistory` e
+bloqueia qualquer alteracao (incluindo os dados gerais em `PATCH
+/service-requests/:id`) quando o status ja e final (`COMPLETED`, `REJECTED`
+ou `CANCELLED`). Nao ha `DELETE` de solicitacao — cancelamento e feito via
+status `CANCELLED`, mantendo o historico intacto (secao 20: "nunca apagar
+historico").
 
 ## Auth
 

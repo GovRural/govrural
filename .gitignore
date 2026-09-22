@@ -37,3 +37,8 @@ apps/api/generated/
 
 # Turbo/cache
 .turbo/
+
+# Next.js regenera estes automaticamente ao rodar `next dev` neste ambiente -
+# decisao consciente de nao versiona-los (ver Fase 01).
+apps/web/AGENTS.md
+apps/web/CLAUDE.md

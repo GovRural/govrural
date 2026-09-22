@@ -4,6 +4,9 @@
 // FASE 03 (auth + RBAC): User, RefreshToken. AuditLog.userId agora possui FK.
 // FASE 04 (produtores): Producer. RuralProperty/ProducerProperty entram na FASE 05.
 // FASE 05 (propriedades): RuralProperty, ProducerProperty, PropertyArea.
+// FASE 06 (solicitacoes): ServiceType, ServiceRequest, ServiceRequestHistory, ProtocolSequence.
+// FASE 07 (ocorrencias): RuralOccurrence. Estradas/pontes (secao 28-29) ficam
+// para uma fase pos-MVP (roadmap macro, secao 63).
 
 generator client {
   provider        = "prisma-client-js"
@@ -44,28 +47,32 @@ model Municipality {
   updatedAt      DateTime           @updatedAt @map("updated_at")
   deletedAt      DateTime?          @map("deleted_at")
 
-  settings    MunicipalitySettings?
-  departments Department[]
-  users       User[]
-  producers   Producer[]
-  properties  RuralProperty[]
-  auditLogs   AuditLog[]
+  settings          MunicipalitySettings?
+  departments       Department[]
+  users             User[]
+  producers         Producer[]
+  properties        RuralProperty[]
+  serviceTypes      ServiceType[]
+  serviceRequests   ServiceRequest[]
+  protocolSequences ProtocolSequence[]
+  occurrences       RuralOccurrence[]
+  auditLogs         AuditLog[]
 
   @@map("municipalities")
 }
 
 // Configuracao de white-label por municipio (ver secao 7 e 74 da especificacao).
 model MunicipalitySettings {
-  id                   String   @id @default(uuid()) @db.Uuid
-  municipalityId       String   @unique @map("municipality_id") @db.Uuid
+  id                   String       @id @default(uuid()) @db.Uuid
+  municipalityId       String       @unique @map("municipality_id") @db.Uuid
   municipality         Municipality @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
-  departmentName       String?  @map("department_name")
-  faviconUrl           String?  @map("favicon_url")
-  whatsappNumber       String?  @map("whatsapp_number")
-  institutionalMessage String?  @map("institutional_message") @db.Text
-  customDomain         String?  @map("custom_domain")
-  createdAt            DateTime @default(now()) @map("created_at")
-  updatedAt            DateTime @updatedAt @map("updated_at")
+  departmentName       String?      @map("department_name")
+  faviconUrl           String?      @map("favicon_url")
+  whatsappNumber       String?      @map("whatsapp_number")
+  institutionalMessage String?      @map("institutional_message") @db.Text
+  customDomain         String?      @map("custom_domain")
+  createdAt            DateTime     @default(now()) @map("created_at")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
 
   @@map("municipality_settings")
 }
@@ -90,7 +97,10 @@ model Department {
   updatedAt      DateTime         @updatedAt @map("updated_at")
   deletedAt      DateTime?        @map("deleted_at")
 
-  users User[]
+  users           User[]
+  serviceTypes    ServiceType[]
+  serviceRequests ServiceRequest[]
+  occurrences     RuralOccurrence[]
 
   @@unique([municipalityId, name])
   @@map("departments")
@@ -118,24 +128,27 @@ enum UserStatus {
 // municipio (municipalityId nulo); todos os demais perfis pertencem a
 // exatamente um municipio (isolamento de tenant).
 model User {
-  id             String      @id @default(uuid()) @db.Uuid
-  municipalityId String?     @map("municipality_id") @db.Uuid
+  id             String        @id @default(uuid()) @db.Uuid
+  municipalityId String?       @map("municipality_id") @db.Uuid
   municipality   Municipality? @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
-  departmentId   String?     @map("department_id") @db.Uuid
-  department     Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  departmentId   String?       @map("department_id") @db.Uuid
+  department     Department?   @relation(fields: [departmentId], references: [id], onDelete: SetNull)
   name           String
-  email          String      @unique
-  passwordHash   String      @map("password_hash")
+  email          String        @unique
+  passwordHash   String        @map("password_hash")
   role           UserRole
   phone          String?
-  status         UserStatus  @default(ACTIVE)
-  lastLoginAt    DateTime?   @map("last_login_at")
-  createdAt      DateTime    @default(now()) @map("created_at")
-  updatedAt      DateTime    @updatedAt @map("updated_at")
-  deletedAt      DateTime?   @map("deleted_at")
+  status         UserStatus    @default(ACTIVE)
+  lastLoginAt    DateTime?     @map("last_login_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  deletedAt      DateTime?     @map("deleted_at")
 
-  refreshTokens RefreshToken[]
-  auditLogs     AuditLog[]
+  refreshTokens           RefreshToken[]
+  auditLogs               AuditLog[]
+  assignedServiceRequests ServiceRequest[]
+  serviceRequestHistory   ServiceRequestHistory[]
+  reportedOccurrences     RuralOccurrence[]
 
   @@index([municipalityId])
   @@map("users")
@@ -234,7 +247,8 @@ model Producer {
   updatedAt         DateTime       @updatedAt @map("updated_at")
   deletedAt         DateTime?      @map("deleted_at")
 
-  propertyLinks ProducerProperty[]
+  propertyLinks   ProducerProperty[]
+  serviceRequests ServiceRequest[]
 
   @@unique([municipalityId, cpfCnpj])
   @@index([municipalityId])
@@ -284,8 +298,9 @@ model RuralProperty {
   updatedAt          DateTime              @updatedAt @map("updated_at")
   deletedAt          DateTime?             @map("deleted_at")
 
-  producerLinks ProducerProperty[]
-  areas         PropertyArea[]
+  producerLinks   ProducerProperty[]
+  areas           PropertyArea[]
+  serviceRequests ServiceRequest[]
 
   @@index([municipalityId])
   @@map("rural_properties")
@@ -323,20 +338,211 @@ enum PropertyAreaStatus {
 // Talhoes/areas dentro de uma propriedade (ver secao 14). Sem municipality_id
 // proprio - o isolamento de tenant e feito pela propriedade-pai.
 model PropertyArea {
-  id            String             @id @default(uuid()) @db.Uuid
-  propertyId    String             @map("property_id") @db.Uuid
-  property      RuralProperty      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  name          String
-  areaHectares  Decimal            @map("area_hectares") @db.Decimal(12, 4)
-  activity      String?
-  crop          String?
-  soilType      String?            @map("soil_type")
-  irrigation    Boolean            @default(false)
-  status        PropertyAreaStatus @default(ACTIVE)
-  createdAt     DateTime           @default(now()) @map("created_at")
-  updatedAt     DateTime           @updatedAt @map("updated_at")
-  deletedAt     DateTime?          @map("deleted_at")
+  id           String             @id @default(uuid()) @db.Uuid
+  propertyId   String             @map("property_id") @db.Uuid
+  property     RuralProperty      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  name         String
+  areaHectares Decimal            @map("area_hectares") @db.Decimal(12, 4)
+  activity     String?
+  crop         String?
+  soilType     String?            @map("soil_type")
+  irrigation   Boolean            @default(false)
+  status       PropertyAreaStatus @default(ACTIVE)
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+  deletedAt    DateTime?          @map("deleted_at")
 
   @@index([propertyId])
   @@map("property_areas")
+}
+
+enum ServiceTypeStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("service_type_status")
+}
+
+// Tipos de servico configuraveis por municipio (ver secao 74). Exemplos:
+// trator, patrolamento, cascalhamento, calcario, sementes, vacinacao.
+model ServiceType {
+  id             String            @id @default(uuid()) @db.Uuid
+  municipalityId String            @map("municipality_id") @db.Uuid
+  municipality   Municipality      @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  departmentId   String?           @map("department_id") @db.Uuid
+  department     Department?       @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  name           String
+  description    String?           @db.Text
+  status         ServiceTypeStatus @default(ACTIVE)
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+  deletedAt      DateTime?         @map("deleted_at")
+
+  serviceRequests ServiceRequest[]
+
+  @@unique([municipalityId, name])
+  @@index([municipalityId])
+  @@map("service_types")
+}
+
+// Contador atomico do protocolo (GR-{ano}-{sequencial}) por municipio e ano.
+// O incremento e feito com upsert dentro de uma transacao (ver
+// ServiceRequestsService.nextProtocol) - o UPDATE trava a linha e serializa
+// concorrencia no Postgres, entao nao ha necessidade de lock explicito.
+model ProtocolSequence {
+  municipalityId String       @map("municipality_id") @db.Uuid
+  municipality   Municipality @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  year           Int
+  lastNumber     Int          @default(0) @map("last_number")
+
+  @@id([municipalityId, year])
+  @@map("protocol_sequences")
+}
+
+enum ServiceRequestStatus {
+  RECEIVED
+  UNDER_ANALYSIS
+  APPROVED
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+  CANCELLED
+  WAITING_DOCUMENT
+
+  @@map("service_request_status")
+}
+
+enum ServiceRequestPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+
+  @@map("service_request_priority")
+}
+
+// Solicitacao de servico do produtor (ver secao 17-19). O protocolo e unico
+// globalmente mas sequencial por municipio+ano (ver ProtocolSequence).
+// Cancelamento/rejeicao usam o campo status - nunca ha DELETE, o historico
+// (ServiceRequestHistory) e permanente.
+model ServiceRequest {
+  id             String                 @id @default(uuid()) @db.Uuid
+  municipalityId String                 @map("municipality_id") @db.Uuid
+  municipality   Municipality           @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  protocol       String                 @unique
+  producerId     String                 @map("producer_id") @db.Uuid
+  producer       Producer               @relation(fields: [producerId], references: [id], onDelete: Restrict)
+  propertyId     String?                @map("property_id") @db.Uuid
+  property       RuralProperty?         @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  departmentId   String                 @map("department_id") @db.Uuid
+  department     Department             @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  serviceTypeId  String                 @map("service_type_id") @db.Uuid
+  serviceType    ServiceType            @relation(fields: [serviceTypeId], references: [id], onDelete: Restrict)
+  description    String                 @db.Text
+  priority       ServiceRequestPriority @default(MEDIUM)
+  status         ServiceRequestStatus   @default(RECEIVED)
+  requestedAt    DateTime               @default(now()) @map("requested_at")
+  analyzedAt     DateTime?              @map("analyzed_at")
+  approvedAt     DateTime?              @map("approved_at")
+  scheduledAt    DateTime?              @map("scheduled_at")
+  completedAt    DateTime?              @map("completed_at")
+  assignedUserId String?                @map("assigned_user_id") @db.Uuid
+  assignedUser   User?                  @relation(fields: [assignedUserId], references: [id], onDelete: SetNull)
+  latitude       Float?
+  longitude      Float?
+  estimatedCost  Decimal?               @map("estimated_cost") @db.Decimal(12, 2)
+  actualCost     Decimal?               @map("actual_cost") @db.Decimal(12, 2)
+  notes          String?                @db.Text
+  createdAt      DateTime               @default(now()) @map("created_at")
+  updatedAt      DateTime               @updatedAt @map("updated_at")
+
+  history ServiceRequestHistory[]
+
+  @@index([municipalityId])
+  @@index([producerId])
+  @@index([status])
+  @@map("service_requests")
+}
+
+// Historico de status (ver secao 20). Nunca apagar. Anexos (attachments)
+// ficam para quando o modulo de Documentos (secao 38) for implementado.
+model ServiceRequestHistory {
+  id               String                @id @default(uuid()) @db.Uuid
+  serviceRequestId String                @map("service_request_id") @db.Uuid
+  serviceRequest   ServiceRequest        @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  userId           String?               @map("user_id") @db.Uuid
+  user             User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  previousStatus   ServiceRequestStatus? @map("previous_status")
+  newStatus        ServiceRequestStatus  @map("new_status")
+  comment          String?               @db.Text
+  latitude         Float?
+  longitude        Float?
+  createdAt        DateTime              @default(now()) @map("created_at")
+
+  @@index([serviceRequestId])
+  @@map("service_request_history")
+}
+
+enum OccurrenceType {
+  ROAD
+  BRIDGE
+  FIRE
+  WATER
+  ENERGY
+  ILLEGAL_DUMPING
+  ANIMALS
+  MACHINERY
+  AGRICULTURE
+  HEALTH
+  SECURITY
+  ENVIRONMENT
+  OTHER
+
+  @@map("occurrence_type")
+}
+
+enum OccurrencePriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+
+  @@map("occurrence_priority")
+}
+
+enum OccurrenceStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+
+  @@map("occurrence_status")
+}
+
+// Ocorrencia rural generica (ver secao 26-27). Encaminhamento (department_id)
+// pode ser definido na criacao ou depois, via update. Fotos/anexos ficam para
+// o modulo de Documentos (secao 38).
+model RuralOccurrence {
+  id             String             @id @default(uuid()) @db.Uuid
+  municipalityId String             @map("municipality_id") @db.Uuid
+  municipality   Municipality       @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  reporterUserId String?            @map("reporter_user_id") @db.Uuid
+  reporterUser   User?              @relation(fields: [reporterUserId], references: [id], onDelete: SetNull)
+  departmentId   String?            @map("department_id") @db.Uuid
+  department     Department?        @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  type           OccurrenceType
+  title          String
+  description    String             @db.Text
+  priority       OccurrencePriority @default(MEDIUM)
+  status         OccurrenceStatus   @default(OPEN)
+  latitude       Float?
+  longitude      Float?
+  resolvedAt     DateTime?          @map("resolved_at")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  @@index([municipalityId])
+  @@index([status])
+  @@map("rural_occurrences")
 }
