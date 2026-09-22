@@ -1,4 +1,5 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, Req } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { Public } from './decorators/public.decorator.js';
 import { LoginDto } from './dto/login.dto.js';
@@ -9,6 +10,8 @@ import { AuthService } from './auth.service.js';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  // Limite estrito contra brute-force de senha (secao 44).
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Public()
   @Post('login')
   login(@Body() dto: LoginDto, @Req() req: Request) {

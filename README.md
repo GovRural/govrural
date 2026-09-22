@@ -292,6 +292,52 @@ municipios/produtores/propriedades/etc.) nao existem ainda — so a API REST.
   todo endpoint de `/portal` usa esse `producerId` do JWT, nunca um valor
   do body.
 
+## Seguranca (Fase 14, secao 44)
+
+- **Rate limiting** (`@nestjs/throttler`): 100 req/min por IP em geral;
+  `POST /auth/login` tem limite proprio de 5/min (brute-force de senha). O
+  limite e por IP, entao tentativas de login legitimas do mesmo IP tambem
+  contam contra a janela.
+- **Security headers** (`helmet`): HSTS, `X-Content-Type-Options: nosniff`,
+  `X-Frame-Options`, etc., em toda resposta.
+- **CORS restrito**: `CORS_ORIGIN` (lista separada por virgula) define as
+  origens autorizadas; sem essa variavel, so libera
+  `http://localhost:3000`. Antes desta fase, CORS estava totalmente aberto.
+- Revisao manual de seguranca cobrindo isolamento de tenant, RBAC, injecao
+  SQL (Prisma parametriza tudo — nenhum `$queryRawUnsafe`), XSS (React
+  escapa por padrao — nenhum `dangerouslySetInnerHTML`), gestao de senha/
+  token (bcrypt, refresh token como hash) — nenhum problema de alta
+  confianca encontrado nesta rodada.
+- **Teste de integracao real encontrou um bug de isolamento de tenant**
+  (ver `test/integration-flow.e2e-spec.ts`, secao 69): `ServiceRequest.
+  protocol` tinha `@unique` **global**, mas o contador (`ProtocolSequence`)
+  e por municipio — dois municipios diferentes colidiam ao gerar o primeiro
+  protocolo do ano (ambos `GR-{ano}-00000001`). Corrigido para
+  `@@unique([municipalityId, protocol])` (migration
+  `20260922090000_fix_protocol_unique_per_municipality`). Os testes
+  unitarios (Prisma mockado) nunca teriam pego isso — só um teste contra
+  banco real expõe constraints reais.
+- **Pendente:** testes automatizados de frontend, politica de retencao/
+  exportacao de dados (LGPD, secao 45), separacao formal de ambientes dev/
+  staging/production, e a integracao com WhatsApp (Fase 13, requer
+  credenciais reais da Meta que nao temos nesta sessao). Backup do banco e
+  HTTPS/certificados sao responsabilidade do provedor de hospedagem
+  (Supabase ja faz backup automatico no plano gerenciado) e da plataforma
+  de deploy, nao deste codigo.
+
+## Testes
+
+- `pnpm --filter @govrural/api test`: unitarios (Prisma mockado, rapidos).
+- `pnpm --filter @govrural/api test:e2e`: integracao ponta-a-ponta contra o
+  banco real de `DATABASE_URL` (`test/integration-flow.e2e-spec.ts` cobre
+  Producer -> Property -> ServiceRequest -> MachineService, isolamento
+  entre dois municipios, e calculo de custo). Cria seus proprios dados com
+  nomes/IDs unicos e limpa tudo no `afterAll` — mas se um teste for
+  interrompido de forma anormal (ex: processo matado no meio), pode deixar
+  municipios de teste orfaos (nome contendo "E2E") para limpar manualmente.
+  Requer `SEED_SUPER_ADMIN_EMAIL`/`SEED_SUPER_ADMIN_PASSWORD` ja aplicados
+  no banco.
+
 ## Convencoes
 
 - Nunca commitar `.env` (apenas `.env.example`).

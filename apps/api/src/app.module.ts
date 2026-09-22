@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module.js';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from './auth/guards/roles.guard.js';
@@ -29,6 +30,9 @@ import { UsersModule } from './users/users.module.js';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    // Rate limit geral (ver secao 44). /auth/login tem um limite mais
+    // estrito (@Throttle no AuthController) contra brute-force de senha.
+    ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 100 }]),
     PrismaModule,
     AuditModule,
     HealthModule,
@@ -51,9 +55,11 @@ import { UsersModule } from './users/users.module.js';
     PortalModule,
   ],
   providers: [
-    // Ordem importa: JwtAuthGuard popula request.user antes do RolesGuard
-    // avaliar @Roles(). Guards globais rodam antes de guards de controller
-    // (ex: TenantGuard em DepartmentsController).
+    // Ordem importa: ThrottlerGuard roda primeiro (se aplica ate a rotas
+    // publicas, como /auth/login). JwtAuthGuard popula request.user antes
+    // do RolesGuard avaliar @Roles(). Guards globais rodam antes de guards
+    // de controller (ex: TenantGuard em DepartmentsController).
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],

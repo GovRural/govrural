@@ -7,5 +7,9 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.e2e-spec.ts'],
+    // Chamadas HTTP sequenciais contra um banco remoto (Supabase) somam
+    // mais que o timeout padrao de 5s.
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
   },
 });

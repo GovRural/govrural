@@ -446,7 +446,7 @@ model ServiceRequest {
   id             String                 @id @default(uuid()) @db.Uuid
   municipalityId String                 @map("municipality_id") @db.Uuid
   municipality   Municipality           @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
-  protocol       String                 @unique
+  protocol       String
   producerId     String                 @map("producer_id") @db.Uuid
   producer       Producer               @relation(fields: [producerId], references: [id], onDelete: Restrict)
   propertyId     String?                @map("property_id") @db.Uuid
@@ -476,6 +476,10 @@ model ServiceRequest {
   history         ServiceRequestHistory[]
   machineServices MachineService[]
 
+  // O protocolo e unico DENTRO do municipio (ver ProtocolSequence), nao
+  // globalmente - dois municipios podem gerar o mesmo GR-2026-00000001 sem
+  // colisao, pois sao tenants independentes.
+  @@unique([municipalityId, protocol])
   @@index([municipalityId])
   @@index([producerId])
   @@index([status])

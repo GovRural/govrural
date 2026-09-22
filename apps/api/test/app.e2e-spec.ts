@@ -16,8 +16,12 @@ describe('AppModule (e2e)', () => {
     await app.init();
   });
 
-  it('/health (GET)', () => {
-    return request(app.getHttpServer()).get('/health').expect(200);
+  it('/health (GET) responde com o banco up (200 ou 503 se so o redis estiver down)', async () => {
+    const response = await request(app.getHttpServer()).get('/health');
+    expect([200, 503]).toContain(response.status);
+    expect(response.body.info?.database?.status ?? response.body.error?.database?.status).toBe(
+      'up',
+    );
   });
 
   afterEach(async () => {
