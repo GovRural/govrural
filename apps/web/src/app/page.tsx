@@ -1,4 +1,5 @@
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -8,9 +9,11 @@ export default function Home() {
       </h1>
       <p className="max-w-md text-zinc-600 dark:text-zinc-400">
         Plataforma de Gestao, Atendimento e Inteligencia do Meio Rural para
-        Municipios. Infraestrutura base (Fase 01) em construcao.
+        Municipios.
       </p>
-      <Button disabled>Login em breve</Button>
+      <Link href="/login" className={buttonVariants()}>
+        Entrar
+      </Link>
     </div>
   );
 }

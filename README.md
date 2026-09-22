@@ -25,9 +25,15 @@ SaaS multi-tenant / white-label para prefeituras e secretarias municipais.
 - **Fase 07 concluida:** ocorrencias rurais. Modelo `RuralOccurrence`
   (secoes 26-27). Estradas/pontes (secoes 28-29) ficam para uma fase pos-MVP
   (roadmap macro, secao 63).
+- **Fase 08 concluida:** patrulha mecanizada. Modelos `Machine` e
+  `MachineService` (secoes 21-23), com calculo automatico de custo
+  (`hourlyCost x totalHours`) e sincronizacao do horimetro da maquina.
+- **Frontend (parcial):** `/login` e `/dashboard` funcionais no `apps/web`,
+  conectados a API real (ver secao Frontend abaixo). Demais telas
+  administrativas ficam para as Fases 11-12 do roadmap (Dashboards/Portal).
 
-Ainda faltam maquinas, programas, GIS e os demais modulos de dominio,
-conforme o roadmap da especificacao.
+Ainda faltam programas, GIS e os demais modulos de dominio, conforme o
+roadmap da especificacao.
 
 ## Estrutura
 
@@ -166,6 +172,18 @@ GET    /occurrences                          (qualquer perfil autenticado do mun
 GET    /occurrences/:id
 POST   /occurrences                          (qualquer perfil interno, incl. MACHINE_OPERATOR; qualquer servidor pode reportar)
 PATCH  /occurrences/:id                      (SUPER_ADMIN, MUNICIPAL_ADMIN, SECRETARY, TECHNICIAN; RESOLVED preenche resolvedAt, reabrir limpa)
+
+GET    /machines                             (qualquer perfil autenticado do municipio; ?page&limit&search&status)
+GET    /machines/:id
+POST   /machines                             (SUPER_ADMIN, MUNICIPAL_ADMIN)
+PATCH  /machines/:id                         (SUPER_ADMIN, MUNICIPAL_ADMIN)
+DELETE /machines/:id                         (SUPER_ADMIN, MUNICIPAL_ADMIN; soft delete)
+
+GET    /machine-services                     (qualquer perfil autenticado do municipio; ?page&limit&status&machineId&operatorId)
+GET    /machine-services/:id
+POST   /machine-services                     (SUPER_ADMIN, MUNICIPAL_ADMIN, SECRETARY, TECHNICIAN; agenda o servico)
+PATCH  /machine-services/:id                 (SUPER_ADMIN, MUNICIPAL_ADMIN, SECRETARY, TECHNICIAN; dados gerais, nao execucao)
+PATCH  /machine-services/:id/execution       (+ MACHINE_OPERATOR; inicio/termino/horimetro/combustivel — calcula custo automaticamente)
 ```
 
 Todas as rotas exigem `Authorization: Bearer <accessToken>`, exceto as
@@ -191,6 +209,19 @@ bloqueia qualquer alteracao (incluindo os dados gerais em `PATCH
 ou `CANCELLED`). Nao ha `DELETE` de solicitacao — cancelamento e feito via
 status `CANCELLED`, mantendo o historico intacto (secao 20: "nunca apagar
 historico").
+
+## Frontend
+
+`apps/web` tem hoje `/login` (formulario de e-mail/senha, chama
+`POST /auth/login` direto) e `/dashboard` (mostra e-mail/perfil/municipio do
+usuario logado, decodificados do JWT no client apenas para exibicao — a
+validacao real e sempre no backend). Tokens ficam em `localStorage` via
+Zustand (`src/stores/auth-store.ts`) com persistencia. Isso e aceitavel para
+testes locais, mas nao e o ideal de seguranca para producao (`localStorage`
+fica exposto a XSS); mover para cookies `httpOnly` fica para uma fase de
+hardening. Nao ha ainda renovacao automatica via refresh token — o access
+token expirado exige novo login. As demais telas administrativas (CRUD de
+municipios/produtores/propriedades/etc.) nao existem ainda — so a API REST.
 
 ## Auth
 

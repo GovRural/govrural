@@ -7,6 +7,7 @@
 // FASE 06 (solicitacoes): ServiceType, ServiceRequest, ServiceRequestHistory, ProtocolSequence.
 // FASE 07 (ocorrencias): RuralOccurrence. Estradas/pontes (secao 28-29) ficam
 // para uma fase pos-MVP (roadmap macro, secao 63).
+// FASE 08 (maquinas): Machine, MachineService.
 
 generator client {
   provider        = "prisma-client-js"
@@ -56,6 +57,8 @@ model Municipality {
   serviceRequests   ServiceRequest[]
   protocolSequences ProtocolSequence[]
   occurrences       RuralOccurrence[]
+  machines          Machine[]
+  machineServices   MachineService[]
   auditLogs         AuditLog[]
 
   @@map("municipalities")
@@ -149,6 +152,7 @@ model User {
   assignedServiceRequests ServiceRequest[]
   serviceRequestHistory   ServiceRequestHistory[]
   reportedOccurrences     RuralOccurrence[]
+  operatedMachineServices MachineService[]        @relation("MachineServiceOperator")
 
   @@index([municipalityId])
   @@map("users")
@@ -249,6 +253,7 @@ model Producer {
 
   propertyLinks   ProducerProperty[]
   serviceRequests ServiceRequest[]
+  machineServices MachineService[]
 
   @@unique([municipalityId, cpfCnpj])
   @@index([municipalityId])
@@ -301,6 +306,7 @@ model RuralProperty {
   producerLinks   ProducerProperty[]
   areas           PropertyArea[]
   serviceRequests ServiceRequest[]
+  machineServices MachineService[]
 
   @@index([municipalityId])
   @@map("rural_properties")
@@ -457,7 +463,8 @@ model ServiceRequest {
   createdAt      DateTime               @default(now()) @map("created_at")
   updatedAt      DateTime               @updatedAt @map("updated_at")
 
-  history ServiceRequestHistory[]
+  history         ServiceRequestHistory[]
+  machineServices MachineService[]
 
   @@index([municipalityId])
   @@index([producerId])
@@ -545,4 +552,90 @@ model RuralOccurrence {
   @@index([municipalityId])
   @@index([status])
   @@map("rural_occurrences")
+}
+
+enum MachineStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+
+  @@map("machine_status")
+}
+
+// Patrulha mecanizada (ver secao 21). "type" e "fuelType" sao texto livre -
+// a especificacao apenas exemplifica valores (trator, patrol, caminhao...),
+// sem enum fechado.
+model Machine {
+  id               String        @id @default(uuid()) @db.Uuid
+  municipalityId   String        @map("municipality_id") @db.Uuid
+  municipality     Municipality  @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  name             String
+  type             String
+  brand            String?
+  model            String?
+  year             Int?
+  plate            String?
+  serialNumber     String?       @map("serial_number")
+  hourlyCost       Decimal       @map("hourly_cost") @db.Decimal(12, 2)
+  fuelType         String?       @map("fuel_type")
+  status           MachineStatus @default(ACTIVE)
+  currentHourMeter Decimal       @default(0) @map("current_hour_meter") @db.Decimal(12, 2)
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+  deletedAt        DateTime?     @map("deleted_at")
+
+  services MachineService[]
+
+  @@index([municipalityId])
+  @@map("machines")
+}
+
+enum MachineServiceStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+
+  @@map("machine_service_status")
+}
+
+// Servico executado por uma maquina (ver secao 22). Custo calculado
+// automaticamente (secao 23: custo_hora x horas) quando o servico e
+// finalizado - ver MachineServicesService. Evidencias fotograficas ficam
+// para o modulo de Documentos (secao 38).
+model MachineService {
+  id               String               @id @default(uuid()) @db.Uuid
+  municipalityId   String               @map("municipality_id") @db.Uuid
+  municipality     Municipality         @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  machineId        String               @map("machine_id") @db.Uuid
+  machine          Machine              @relation(fields: [machineId], references: [id], onDelete: Restrict)
+  operatorId       String?              @map("operator_id") @db.Uuid
+  operator         User?                @relation("MachineServiceOperator", fields: [operatorId], references: [id], onDelete: SetNull)
+  producerId       String               @map("producer_id") @db.Uuid
+  producer         Producer             @relation(fields: [producerId], references: [id], onDelete: Restrict)
+  propertyId       String?              @map("property_id") @db.Uuid
+  property         RuralProperty?       @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  serviceRequestId String?              @map("service_request_id") @db.Uuid
+  serviceRequest   ServiceRequest?      @relation(fields: [serviceRequestId], references: [id], onDelete: SetNull)
+  serviceType      String               @map("service_type")
+  status           MachineServiceStatus @default(SCHEDULED)
+  scheduledDate    DateTime?            @map("scheduled_date")
+  startTime        DateTime?            @map("start_time")
+  endTime          DateTime?            @map("end_time")
+  initialHourMeter Decimal?             @map("initial_hour_meter") @db.Decimal(12, 2)
+  finalHourMeter   Decimal?             @map("final_hour_meter") @db.Decimal(12, 2)
+  totalHours       Decimal?             @map("total_hours") @db.Decimal(12, 2)
+  fuelConsumption  Decimal?             @map("fuel_consumption") @db.Decimal(12, 2)
+  estimatedCost    Decimal?             @map("estimated_cost") @db.Decimal(12, 2)
+  actualCost       Decimal?             @map("actual_cost") @db.Decimal(12, 2)
+  latitude         Float?
+  longitude        Float?
+  notes            String?              @db.Text
+  createdAt        DateTime             @default(now()) @map("created_at")
+  updatedAt        DateTime             @updatedAt @map("updated_at")
+
+  @@index([municipalityId])
+  @@index([machineId])
+  @@index([status])
+  @@map("machine_services")
 }
