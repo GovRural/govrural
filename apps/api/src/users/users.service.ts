@@ -37,6 +37,18 @@ export class UsersService {
       );
     }
 
+    if (dto.role === UserRole.PRODUCER) {
+      if (!dto.producerId) {
+        throw new BadRequestException(
+          'producerId e obrigatorio para o perfil PRODUCER',
+        );
+      }
+      await this.assertProducerBelongsToMunicipality(
+        dto.producerId,
+        municipalityId,
+      );
+    }
+
     const passwordHash = await bcrypt.hash(dto.password, SALT_ROUNDS);
 
     try {
@@ -48,6 +60,7 @@ export class UsersService {
           role: dto.role,
           phone: dto.phone,
           departmentId: dto.departmentId,
+          producerId: dto.role === UserRole.PRODUCER ? dto.producerId : undefined,
           municipalityId,
         },
       });
@@ -273,6 +286,25 @@ export class UsersService {
 
     if (!department) {
       throw new BadRequestException('Secretaria invalida para este municipio');
+    }
+  }
+
+  private async assertProducerBelongsToMunicipality(
+    producerId: string,
+    municipalityId: string | null,
+  ) {
+    if (!municipalityId) {
+      throw new BadRequestException(
+        'Nao e possivel associar um produtor a um usuario sem municipio',
+      );
+    }
+
+    const producer = await this.prisma.producer.findFirst({
+      where: { id: producerId, municipalityId, deletedAt: null },
+    });
+
+    if (!producer) {
+      throw new BadRequestException('Produtor invalido para este municipio');
     }
   }
 

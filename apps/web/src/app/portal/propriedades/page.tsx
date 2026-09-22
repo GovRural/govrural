@@ -1,0 +1,73 @@
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { buttonVariants } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { apiFetch } from "@/lib/api-client";
+import type { PortalProperty } from "@/lib/portal-types";
+import { useAuthStore } from "@/stores/auth-store";
+
+export default function PortalPropertiesPage() {
+  const router = useRouter();
+  const { accessToken, user } = useAuthStore();
+
+  useEffect(() => {
+    if (!user) router.replace("/login");
+  }, [user, router]);
+
+  const query = useQuery({
+    queryKey: ["portal-properties"],
+    enabled: Boolean(accessToken),
+    queryFn: () =>
+      apiFetch<PortalProperty[]>("/portal/properties", {
+        accessToken: accessToken!,
+      }),
+  });
+
+  if (!user) return null;
+
+  return (
+    <div className="flex flex-1 flex-col gap-4 bg-zinc-50 p-6 dark:bg-black">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+          Minhas propriedades
+        </h1>
+        <Link href="/portal" className={buttonVariants({ variant: "outline" })}>
+          Voltar
+        </Link>
+      </div>
+
+      {query.isLoading && <p className="text-zinc-500">Carregando...</p>}
+      {query.data?.length === 0 && (
+        <p className="text-zinc-500">Nenhuma propriedade vinculada.</p>
+      )}
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {query.data?.map((property) => (
+          <Card key={property.id}>
+            <CardHeader>
+              <CardTitle>{property.name}</CardTitle>
+              <CardDescription>
+                {property.locality ?? "Localidade nao informada"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-zinc-500">
+                Area total: {property.totalArea} ha
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}

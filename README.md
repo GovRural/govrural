@@ -41,11 +41,18 @@ SaaS multi-tenant / white-label para prefeituras e secretarias municipais.
   atendidos, horas/custo de maquina, tempo medio de atendimento, taxa de
   conclusao). Tela `/dashboard/indicadores` com stat tiles (layout da
   secao 65).
-- **Frontend (parcial):** `/login`, `/dashboard`, `/dashboard/mapa` e
-  `/dashboard/indicadores` funcionais no `apps/web`, conectados a API real
+- **Fase 12 concluida:** portal do produtor. `User.producerId` vincula o
+  login de um perfil `PRODUCER` a um `Producer` (varios `User` podem apontar
+  para o mesmo `Producer`, ex: pai e filho). `GET /portal/{me,properties,
+  service-requests,programs}` e `POST /portal/service-requests` operam
+  sempre em nome do `producerId` do proprio JWT — nunca aceitam um
+  `producerId` arbitrario do client (secao 32).
+- **Frontend (parcial):** `/login`, `/dashboard`, `/dashboard/mapa`,
+  `/dashboard/indicadores` e `/portal` (+ `/portal/propriedades`,
+  `/portal/solicitacoes`) funcionais no `apps/web`, conectados a API real
   (ver secao Frontend abaixo).
 
-Ainda faltam produtores/programas via WhatsApp, portal do produtor e os
+Ainda faltam produtores/programas via WhatsApp e os
 demais modulos de dominio, conforme o roadmap da especificacao.
 
 ## Estrutura
@@ -217,6 +224,12 @@ GET    /dashboard/service-requests                      (tempo medio de atendime
 GET    /dashboard/machines                               (horas/custo por maquina)
 GET    /dashboard/programs                               (beneficiarios/valor entregue por programa)
 GET    /dashboard/occurrences                            (contagem por tipo/prioridade/status)
+
+GET    /portal/me                                        (PRODUCER; resumo da secao 32 - propriedades/solicitacoes abertas/servicos/programas)
+GET    /portal/properties                                (PRODUCER; so as propriedades vinculadas ao proprio produtor)
+GET    /portal/service-requests                          (PRODUCER; so as proprias solicitacoes)
+POST   /portal/service-requests                          (PRODUCER; producerId sempre forcado a partir do JWT)
+GET    /portal/programs                                  (PRODUCER; beneficios recebidos pelo proprio produtor)
 ```
 
 Todas as rotas exigem `Authorization: Bearer <accessToken>`, exceto as
@@ -248,18 +261,21 @@ historico").
 `apps/web` tem hoje `/login` (formulario de e-mail/senha, chama
 `POST /auth/login` direto), `/dashboard` (mostra e-mail/perfil/municipio do
 usuario logado, decodificados do JWT no client apenas para exibicao — a
-validacao real e sempre no backend) e `/dashboard/mapa` (MapLibre GL +
+validacao real e sempre no backend; redireciona automaticamente para
+`/portal` se o perfil for `PRODUCER`), `/dashboard/mapa` (MapLibre GL +
 tiles do OpenStreetMap, consumindo `GET /gis/map`; clicar num marker de
-propriedade busca `GET /gis/properties/:id` e mostra o painel lateral). Um
-`SUPER_ADMIN` (sem `municipalityId` proprio) precisa digitar manualmente o
-ID do municipio no mapa — nao ha ainda seletor de municipio na UI. Tokens
-ficam em `localStorage` via Zustand (`src/stores/auth-store.ts`) com
-persistencia. Isso e aceitavel para testes locais, mas nao e o ideal de
-seguranca para producao (`localStorage` fica exposto a XSS); mover para
-cookies `httpOnly` fica para uma fase de hardening. Nao ha ainda renovacao
-automatica via refresh token — o access token expirado exige novo login. As
-demais telas administrativas (CRUD de municipios/produtores/propriedades/
-etc.) nao existem ainda — so a API REST.
+propriedade busca `GET /gis/properties/:id` e mostra o painel lateral),
+`/dashboard/indicadores` (stat tiles) e `/portal` + `/portal/propriedades` +
+`/portal/solicitacoes` (dashboard do produtor da secao 32, incluindo
+formulario de nova solicitacao). Um `SUPER_ADMIN` (sem `municipalityId`
+proprio) precisa digitar manualmente o ID do municipio no mapa/indicadores —
+nao ha ainda seletor de municipio na UI. Tokens ficam em `localStorage` via
+Zustand (`src/stores/auth-store.ts`) com persistencia. Isso e aceitavel para
+testes locais, mas nao e o ideal de seguranca para producao (`localStorage`
+fica exposto a XSS); mover para cookies `httpOnly` fica para uma fase de
+hardening. Nao ha ainda renovacao automatica via refresh token — o access
+token expirado exige novo login. As demais telas administrativas (CRUD de
+municipios/produtores/propriedades/etc.) nao existem ainda — so a API REST.
 
 ## Auth
 
@@ -271,9 +287,10 @@ etc.) nao existem ainda — so a API REST.
   claro.
 - Perfis (`UserRole`, ver secao 8 da especificacao): `SUPER_ADMIN` (nao
   pertence a municipio), `MUNICIPAL_ADMIN`, `SECRETARY`, `TECHNICIAN`,
-  `MACHINE_OPERATOR`, `PRODUCER` (portal do produtor). O `User` com role
-  `PRODUCER` ainda nao esta vinculado a um registro de `Producer` — esse
-  vinculo (login do proprio produtor) fica para o Portal do Produtor.
+  `MACHINE_OPERATOR`, `PRODUCER`. Um `User` com role `PRODUCER` tem
+  `producerId` apontando para o `Producer` que ele representa (Fase 12);
+  todo endpoint de `/portal` usa esse `producerId` do JWT, nunca um valor
+  do body.
 
 ## Convencoes
 

@@ -122,13 +122,14 @@ export class AuthService {
   }
 
   private async issueTokenPair(
-    user: Pick<User, 'id' | 'email' | 'role' | 'municipalityId'>,
+    user: Pick<User, 'id' | 'email' | 'role' | 'municipalityId' | 'producerId'>,
   ): Promise<TokenPair> {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
       role: user.role,
       municipalityId: user.municipalityId,
+      producerId: user.producerId,
     };
 
     const accessToken = this.jwtService.sign(payload, {

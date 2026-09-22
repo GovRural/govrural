@@ -34,6 +34,12 @@ export class CreateUserDto {
   @IsUUID()
   departmentId?: string;
 
+  // Obrigatorio quando role === PRODUCER (portal do produtor, secao 32);
+  // ignorado para os demais perfis.
+  @IsOptional()
+  @IsUUID()
+  producerId?: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(30)

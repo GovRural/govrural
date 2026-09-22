@@ -7,6 +7,7 @@ interface AuthUser {
   email: string;
   role: string;
   municipalityId: string | null;
+  producerId: string | null;
 }
 
 interface AuthState {
@@ -34,6 +35,7 @@ export const useAuthStore = create<AuthState>()(
                 email: payload.email,
                 role: payload.role,
                 municipalityId: payload.municipalityId,
+                producerId: payload.producerId,
               }
             : null,
         });

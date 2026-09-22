@@ -6,5 +6,6 @@ import { ServiceRequestsService } from './service-requests.service.js';
 @Module({
   controllers: [ServiceRequestsController],
   providers: [ServiceRequestsService, TenantGuard],
+  exports: [ServiceRequestsService],
 })
 export class ServiceRequestsModule {}

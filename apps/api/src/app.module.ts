@@ -17,6 +17,7 @@ import { OccurrencesModule } from './occurrences/occurrences.module.js';
 import { ProducersModule } from './producers/producers.module.js';
 import { ProgramBeneficiariesModule } from './program-beneficiaries/program-beneficiaries.module.js';
 import { ProgramsModule } from './programs/programs.module.js';
+import { PortalModule } from './portal/portal.module.js';
 import { PropertiesModule } from './properties/properties.module.js';
 import { PropertyAreasModule } from './property-areas/property-areas.module.js';
 import { ServiceRequestsModule } from './service-requests/service-requests.module.js';
@@ -47,6 +48,7 @@ import { UsersModule } from './users/users.module.js';
     ProgramBeneficiariesModule,
     GisModule,
     DashboardsModule,
+    PortalModule,
   ],
   providers: [
     // Ordem importa: JwtAuthGuard popula request.user antes do RolesGuard

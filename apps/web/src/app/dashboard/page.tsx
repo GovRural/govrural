@@ -30,10 +30,12 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!user) {
       router.replace("/login");
+    } else if (user.role === "PRODUCER") {
+      router.replace("/portal");
     }
   }, [user, router]);
 
-  if (!user) {
+  if (!user || user.role === "PRODUCER") {
     return null;
   }
 

@@ -3,6 +3,7 @@ export interface JwtPayload {
   email: string;
   role: string;
   municipalityId: string | null;
+  producerId: string | null;
   exp: number;
 }
 
