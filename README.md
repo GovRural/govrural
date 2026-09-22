@@ -28,11 +28,14 @@ SaaS multi-tenant / white-label para prefeituras e secretarias municipais.
 - **Fase 08 concluida:** patrulha mecanizada. Modelos `Machine` e
   `MachineService` (secoes 21-23), com calculo automatico de custo
   (`hourlyCost x totalHours`) e sincronizacao do horimetro da maquina.
+- **Fase 09 concluida:** programas municipais. Modelos `Program` e
+  `ProgramBeneficiary` (secoes 24-25); `approvalDate`/`deliveryDate`
+  preenchidos automaticamente ao aprovar/entregar.
 - **Frontend (parcial):** `/login` e `/dashboard` funcionais no `apps/web`,
   conectados a API real (ver secao Frontend abaixo). Demais telas
   administrativas ficam para as Fases 11-12 do roadmap (Dashboards/Portal).
 
-Ainda faltam programas, GIS e os demais modulos de dominio, conforme o
+Ainda faltam GIS e os demais modulos de dominio, conforme o
 roadmap da especificacao.
 
 ## Estrutura
@@ -184,6 +187,17 @@ GET    /machine-services/:id
 POST   /machine-services                     (SUPER_ADMIN, MUNICIPAL_ADMIN, SECRETARY, TECHNICIAN; agenda o servico)
 PATCH  /machine-services/:id                 (SUPER_ADMIN, MUNICIPAL_ADMIN, SECRETARY, TECHNICIAN; dados gerais, nao execucao)
 PATCH  /machine-services/:id/execution       (+ MACHINE_OPERATOR; inicio/termino/horimetro/combustivel — calcula custo automaticamente)
+
+GET    /programs                                       (qualquer perfil autenticado do municipio; ?page&limit&search&status)
+GET    /programs/:id
+POST   /programs                                        (SUPER_ADMIN, MUNICIPAL_ADMIN)
+PATCH  /programs/:id                                    (SUPER_ADMIN, MUNICIPAL_ADMIN)
+DELETE /programs/:id                                    (SUPER_ADMIN, MUNICIPAL_ADMIN; soft delete)
+
+GET    /programs/:programId/beneficiaries               (qualquer perfil autenticado do municipio)
+GET    /programs/:programId/beneficiaries/:id
+POST   /programs/:programId/beneficiaries               (SUPER_ADMIN, MUNICIPAL_ADMIN, SECRETARY, TECHNICIAN)
+PATCH  /programs/:programId/beneficiaries/:id           (idem; APPROVED/DELIVERED preenchem approvalDate/deliveryDate)
 ```
 
 Todas as rotas exigem `Authorization: Bearer <accessToken>`, exceto as
