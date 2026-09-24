@@ -33,13 +33,13 @@ export default function PortalPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 bg-zinc-50 p-6 dark:bg-black">
+    <div className="flex flex-1 flex-col gap-6 bg-background p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+          <h1 className="text-2xl font-semibold text-foreground">
             Ola, {meQuery.data?.name ?? "..."}!
           </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="text-sm text-muted-foreground">
             Portal do Produtor - GovRural
           </p>
         </div>
@@ -48,9 +48,9 @@ export default function PortalPage() {
         </Button>
       </div>
 
-      {meQuery.isLoading && <p className="text-zinc-500">Carregando...</p>}
+      {meQuery.isLoading && <p className="text-muted-foreground">Carregando...</p>}
       {meQuery.isError && (
-        <p className="text-red-600">Erro ao carregar seus dados.</p>
+        <p className="text-destructive">Erro ao carregar seus dados.</p>
       )}
 
       {meQuery.data && (

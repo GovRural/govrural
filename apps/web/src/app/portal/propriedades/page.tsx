@@ -36,9 +36,9 @@ export default function PortalPropertiesPage() {
   if (!user) return null;
 
   return (
-    <div className="flex flex-1 flex-col gap-4 bg-zinc-50 p-6 dark:bg-black">
+    <div className="flex flex-1 flex-col gap-4 bg-background p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+        <h1 className="text-2xl font-semibold text-foreground">
           Minhas propriedades
         </h1>
         <Link href="/portal" className={buttonVariants({ variant: "outline" })}>
@@ -46,9 +46,9 @@ export default function PortalPropertiesPage() {
         </Link>
       </div>
 
-      {query.isLoading && <p className="text-zinc-500">Carregando...</p>}
+      {query.isLoading && <p className="text-muted-foreground">Carregando...</p>}
       {query.data?.length === 0 && (
-        <p className="text-zinc-500">Nenhuma propriedade vinculada.</p>
+        <p className="text-muted-foreground">Nenhuma propriedade vinculada.</p>
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -61,7 +61,7 @@ export default function PortalPropertiesPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-muted-foreground">
                 Area total: {property.totalArea} ha
               </p>
             </CardContent>

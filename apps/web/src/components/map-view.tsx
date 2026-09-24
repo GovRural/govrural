@@ -10,14 +10,8 @@ import {
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef } from "react";
+import { LAYER_COLORS } from "@/lib/gis-layers";
 import type { GeoJsonFeatureCollection } from "@/lib/gis-types";
-
-const LAYER_COLORS: Record<string, string> = {
-  property: "#16a34a",
-  occurrence: "#dc2626",
-  service_request: "#2563eb",
-  machine_service: "#ca8a04",
-};
 
 const OSM_STYLE: StyleSpecification = {
   version: 8,
@@ -74,7 +68,7 @@ export function MapView({ data, onFeatureClick }: MapViewProps) {
     for (const feature of data.features) {
       const [lng, lat] = feature.geometry.coordinates;
       const layer = String(feature.properties.layer ?? "property");
-      const color = LAYER_COLORS[layer] ?? "#6b7280";
+      const color = (LAYER_COLORS as Record<string, string>)[layer] ?? "#6b7280";
 
       const el = document.createElement("div");
       el.style.width = "16px";

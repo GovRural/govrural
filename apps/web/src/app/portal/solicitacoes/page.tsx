@@ -94,9 +94,9 @@ export default function PortalServiceRequestsPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 bg-zinc-50 p-6 dark:bg-black">
+    <div className="flex flex-1 flex-col gap-6 bg-background p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+        <h1 className="text-2xl font-semibold text-foreground">
           Solicitacoes
         </h1>
         <Link href="/portal" className={buttonVariants({ variant: "outline" })}>

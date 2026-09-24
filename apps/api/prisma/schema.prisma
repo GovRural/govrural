@@ -148,6 +148,7 @@ model User {
   passwordHash   String        @map("password_hash")
   role           UserRole
   phone          String?
+  avatarUrl      String?       @map("avatar_url") @db.Text
   status         UserStatus    @default(ACTIVE)
   lastLoginAt    DateTime?     @map("last_login_at")
   createdAt      DateTime      @default(now()) @map("created_at")

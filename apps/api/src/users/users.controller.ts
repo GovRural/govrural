@@ -12,8 +12,10 @@ import { UserRole } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import type { AuthenticatedUser } from '../auth/types.js';
+import { ChangeEmailDto } from './dto/change-email.dto.js';
 import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
+import { UpdateOwnProfileDto } from './dto/update-own-profile.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { UsersService } from './users.service.js';
 
@@ -40,12 +42,28 @@ export class UsersController {
     return this.usersService.findOne(currentUser, id);
   }
 
+  @Patch('me')
+  updateOwnProfile(
+    @CurrentUser() currentUser: AuthenticatedUser,
+    @Body() dto: UpdateOwnProfileDto,
+  ) {
+    return this.usersService.updateOwnProfile(currentUser, dto);
+  }
+
   @Patch('me/password')
   changeOwnPassword(
     @CurrentUser() currentUser: AuthenticatedUser,
     @Body() dto: ChangePasswordDto,
   ) {
     return this.usersService.changePassword(currentUser, dto);
+  }
+
+  @Patch('me/email')
+  changeOwnEmail(
+    @CurrentUser() currentUser: AuthenticatedUser,
+    @Body() dto: ChangeEmailDto,
+  ) {
+    return this.usersService.changeEmail(currentUser, dto);
   }
 
   @Patch(':id')

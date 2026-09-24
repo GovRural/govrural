@@ -11,8 +11,10 @@ import * as bcrypt from 'bcryptjs';
 import { AuditService } from '../common/audit/audit.service.js';
 import { PrismaService } from '../common/prisma/prisma.service.js';
 import { AuthenticatedUser } from '../auth/types.js';
+import { ChangeEmailDto } from './dto/change-email.dto.js';
 import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
+import { UpdateOwnProfileDto } from './dto/update-own-profile.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 
 const SALT_ROUNDS = 12;
@@ -219,6 +221,66 @@ export class UsersService {
       entityId: user.id,
       newData: { passwordChanged: true },
     });
+  }
+
+  async updateOwnProfile(currentUser: AuthenticatedUser, dto: UpdateOwnProfileDto) {
+    const user = await this.prisma.user.update({
+      where: { id: currentUser.id },
+      data: { name: dto.name, phone: dto.phone, avatarUrl: dto.avatarUrl },
+    });
+
+    await this.audit.log({
+      municipalityId: user.municipalityId,
+      userId: currentUser.id,
+      action: AuditAction.UPDATE,
+      entity: 'User',
+      entityId: user.id,
+      newData: { name: user.name, phone: user.phone, avatarChanged: Boolean(dto.avatarUrl) },
+    });
+
+    return this.sanitize(user);
+  }
+
+  async changeEmail(currentUser: AuthenticatedUser, dto: ChangeEmailDto) {
+    const user = await this.prisma.user.findFirst({
+      where: { id: currentUser.id, deletedAt: null },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuario nao encontrado');
+    }
+
+    const matches = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+    if (!matches) {
+      throw new UnauthorizedException('Senha atual incorreta');
+    }
+
+    try {
+      const updated = await this.prisma.user.update({
+        where: { id: user.id },
+        data: { email: dto.newEmail },
+      });
+
+      await this.audit.log({
+        municipalityId: user.municipalityId,
+        userId: user.id,
+        action: AuditAction.UPDATE,
+        entity: 'User',
+        entityId: user.id,
+        oldData: { email: user.email },
+        newData: { email: updated.email },
+      });
+
+      return this.sanitize(updated);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('Ja existe um usuario com este email');
+      }
+      throw error;
+    }
   }
 
   private async findScopedOrThrow(currentUser: AuthenticatedUser, id: string) {

@@ -1,5 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { json } from 'express';
 import helmet from 'helmet';
 import { AppModule } from './app.module.js';
 
@@ -7,6 +8,9 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use(helmet());
+  // Limite padrao do Express (100kb) e pequeno demais para o avatar do
+  // usuario (data URI base64 - ver PATCH /users/me).
+  app.use(json({ limit: '2mb' }));
 
   // CORS restrito as origens conhecidas (secao 44). CORS_ORIGIN aceita uma
   // lista separada por virgula; sem a env var, so libera o dev local.
