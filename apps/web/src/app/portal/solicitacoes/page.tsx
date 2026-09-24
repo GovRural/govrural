@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { RequestStatusBadge } from "@/components/request-status-badge";
 import { apiFetch } from "@/lib/api-client";
 import type { PortalServiceRequest } from "@/lib/portal-types";
 import { useAuthStore } from "@/stores/auth-store";
@@ -26,29 +27,18 @@ interface ServiceType {
   name: string;
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  RECEIVED: "Recebida",
-  UNDER_ANALYSIS: "Em analise",
-  APPROVED: "Aprovada",
-  SCHEDULED: "Agendada",
-  IN_PROGRESS: "Em andamento",
-  COMPLETED: "Concluida",
-  REJECTED: "Rejeitada",
-  CANCELLED: "Cancelada",
-  WAITING_DOCUMENT: "Aguardando documento",
-};
-
 export default function PortalServiceRequestsPage() {
   const router = useRouter();
-  const { accessToken, user } = useAuthStore();
+  const { accessToken, user, hasHydrated } = useAuthStore();
   const queryClient = useQueryClient();
   const [departmentId, setDepartmentId] = useState("");
   const [serviceTypeId, setServiceTypeId] = useState("");
   const [description, setDescription] = useState("");
 
   useEffect(() => {
+    if (!hasHydrated) return;
     if (!user) router.replace("/login");
-  }, [user, router]);
+  }, [hasHydrated, user, router]);
 
   const requestsQuery = useQuery({
     queryKey: ["portal-service-requests"],
@@ -86,7 +76,7 @@ export default function PortalServiceRequestsPage() {
     },
   });
 
-  if (!user) return null;
+  if (!hasHydrated || !user) return null;
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -171,11 +161,9 @@ export default function PortalServiceRequestsPage() {
                 {request.serviceType.name} - {request.department.name}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col gap-2">
               <p className="text-sm">{request.description}</p>
-              <p className="mt-2 text-sm font-medium">
-                Status: {STATUS_LABELS[request.status] ?? request.status}
-              </p>
+              <RequestStatusBadge status={request.status} />
             </CardContent>
           </Card>
         ))}

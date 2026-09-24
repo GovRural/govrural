@@ -12,12 +12,13 @@ import { useAuthStore } from "@/stores/auth-store";
 
 export default function PortalPage() {
   const router = useRouter();
-  const { accessToken, user, logout } = useAuthStore();
+  const { accessToken, user, hasHydrated, logout } = useAuthStore();
 
   useEffect(() => {
+    if (!hasHydrated) return;
     if (!user) router.replace("/login");
     else if (user.role !== "PRODUCER") router.replace("/dashboard");
-  }, [user, router]);
+  }, [hasHydrated, user, router]);
 
   const meQuery = useQuery({
     queryKey: ["portal-me"],
@@ -25,7 +26,7 @@ export default function PortalPage() {
     queryFn: () => apiFetch<PortalMe>("/portal/me", { accessToken: accessToken! }),
   });
 
-  if (!user || user.role !== "PRODUCER") return null;
+  if (!hasHydrated || !user || user.role !== "PRODUCER") return null;
 
   function handleLogout() {
     logout();

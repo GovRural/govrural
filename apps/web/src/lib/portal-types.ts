@@ -1,3 +1,5 @@
+import type { ServiceRequestStatus } from "@/lib/service-request-types";
+
 export interface PortalMe {
   name: string;
   properties: number;
@@ -17,7 +19,7 @@ export interface PortalServiceRequest {
   id: string;
   protocol: string;
   description: string;
-  status: string;
+  status: ServiceRequestStatus;
   requestedAt: string;
   serviceType: { name: string };
   department: { name: string };

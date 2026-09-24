@@ -11,11 +11,13 @@ export const MAP_LAYERS: MapLayerKey[] = [
   "machine_service",
 ];
 
+// Cores via CSS custom property (nao hex cru) - resolvidas pelo browser a
+// partir de globals.css, entao acompanham automaticamente o dark mode.
 export const LAYER_COLORS: Record<MapLayerKey, string> = {
-  property: "#16a34a",
-  occurrence: "#dc2626",
-  service_request: "#2563eb",
-  machine_service: "#ca8a04",
+  property: "var(--chart-1)",
+  occurrence: "var(--chart-4)",
+  service_request: "var(--chart-3)",
+  machine_service: "var(--chart-2)",
 };
 
 export const LAYER_LABELS: Record<MapLayerKey, string> = {

@@ -10,8 +10,16 @@ seus próprios dados com nome único e IDs coletados para cleanup no
 
 Frontend: `tsc --noEmit` para tipos, ESLint para lint. Sem suite de teste
 automatizado ainda (nenhum arquivo `*.test.tsx`/`*.spec.tsx` no frontend
-até o momento) — a verificação de UI hoje é manual (rodar o dev server,
-navegar, checar rota por `curl` para status 200 e checar visualmente).
+até o momento) — a verificação de UI hoje é: `curl` pra status 200
+(confirma ausência de erro de build/runtime), mais **inspeção visual
+real** via `packages/devtools/screenshot.mjs` (Playwright sobre o
+Microsoft Edge já instalado no Windows — o binário do Chromium não pode
+ser baixado neste ambiente, ver o README do pacote). Antes desse script
+existir, a "verificação visual" era só leitura de código comparada aos
+tokens/padrões — isso já deixou passar um bug real (ver
+`docs/architecture/ADR/ADR-004-auth-store-hydration.md`, achado
+justamente ao forçar um reload de página via este script). Preferir
+sempre o screenshot real a inferir a aparência pela classe Tailwind.
 
 ## O que testar além do "abre"
 
@@ -51,8 +59,8 @@ ativamente quebrá-la, não só confirmar que funciona:
     do módulo ainda passam
 [ ] Se mudou rota nova de listagem/detalhe: verificado via curl que
     retorna o status esperado
-[ ] Se mudou UI: verificado visualmente no dev server (screenshot ou
-    navegação real), não só que compila
+[ ] Se mudou UI: screenshot real via `packages/devtools/screenshot.mjs`
+    (não so leitura de codigo), comparado contra `docs/ux/DESIGN_SYSTEM.md`
 ```
 
 Ver a suíte de testes já existente, módulo por módulo, em

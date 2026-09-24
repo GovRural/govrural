@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { StatusBadge } from "@/components/status-badge";
 import { ApiError, apiFetch } from "@/lib/api-client";
 import { cleanPayload } from "@/lib/clean-payload";
@@ -50,6 +51,7 @@ function UserDetailContent({ id, onClose }: { id: string; onClose: () => void })
   const currentUser = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const query = useQuery({
     queryKey: ["user", id],
@@ -121,12 +123,20 @@ function UserDetailContent({ id, onClose }: { id: string; onClose: () => void })
             statusMutation.mutate(user.status === "ACTIVE" ? "INACTIVE" : "ACTIVE")
           }
           togglingStatus={statusMutation.isPending}
-          onDelete={() => {
-            if (confirm(`Remover o acesso de "${user.name}"?`)) {
-              deleteMutation.mutate();
-            }
-          }}
+          onDelete={() => setConfirmDeleteOpen(true)}
           deleting={deleteMutation.isPending}
+        />
+      )}
+
+      {user && (
+        <ConfirmDialog
+          open={confirmDeleteOpen}
+          onOpenChange={setConfirmDeleteOpen}
+          title="Remover acesso"
+          description={`Remover o acesso de "${user.name}"? Essa acao nao pode ser desfeita.`}
+          confirmLabel="Remover"
+          confirming={deleteMutation.isPending}
+          onConfirm={() => deleteMutation.mutate()}
         />
       )}
     </div>

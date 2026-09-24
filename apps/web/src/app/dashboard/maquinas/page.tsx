@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { MachineStatusBadge } from "@/components/machine-status-badge";
 import { NewMachineDialog } from "@/components/new-machine-dialog";
 import { useTenantId } from "@/hooks/use-tenant-id";
@@ -22,6 +23,7 @@ export default function MachinesPage() {
   const municipalityId = useTenantId();
   const queryClient = useQueryClient();
   const [newOpen, setNewOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Machine | null>(null);
 
   const query = useQuery({
     queryKey: ["machines", municipalityId],
@@ -124,11 +126,7 @@ export default function MachinesPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
-                      if (confirm(`Excluir a maquina "${machine.name}"?`)) {
-                        deleteMutation.mutate(machine.id);
-                      }
-                    }}
+                    onClick={() => setDeleteTarget(machine)}
                   >
                     Excluir
                   </Button>
@@ -140,6 +138,19 @@ export default function MachinesPage() {
       </div>
 
       <NewMachineDialog open={newOpen} onOpenChange={setNewOpen} />
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Excluir maquina"
+        description={
+          deleteTarget ? `Excluir a maquina "${deleteTarget.name}"? Essa acao nao pode ser desfeita.` : undefined
+        }
+        confirmLabel="Excluir"
+        confirming={deleteMutation.isPending}
+        onConfirm={() => {
+          if (deleteTarget) deleteMutation.mutate(deleteTarget.id);
+        }}
+      />
     </div>
   );
 }

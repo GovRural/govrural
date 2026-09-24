@@ -3,13 +3,33 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { MachineServiceStatusBadge } from "@/components/machine-service-status-badge";
 import { MapView } from "@/components/map-view";
 import { MapLegend } from "@/components/map-legend";
+import { OccurrenceStatusBadge } from "@/components/occurrence-status-badge";
+import { RequestStatusBadge } from "@/components/request-status-badge";
 import { useTenantId } from "@/hooks/use-tenant-id";
 import { apiFetch } from "@/lib/api-client";
 import { MAP_LAYERS, type MapLayerKey } from "@/lib/gis-layers";
 import type { GeoJsonFeatureCollection, PropertyDetail } from "@/lib/gis-types";
+import type { MachineServiceStatus } from "@/lib/machine-service-types";
+import type { OccurrenceStatus } from "@/lib/occurrence-types";
+import type { ServiceRequestStatus } from "@/lib/service-request-types";
 import { useAuthStore } from "@/stores/auth-store";
+
+function SelectedFeatureStatus({ selected }: { selected: Record<string, unknown> }) {
+  const status = String(selected.status ?? "");
+  switch (selected.layer) {
+    case "occurrence":
+      return <OccurrenceStatusBadge status={status as OccurrenceStatus} />;
+    case "service_request":
+      return <RequestStatusBadge status={status as ServiceRequestStatus} />;
+    case "machine_service":
+      return <MachineServiceStatusBadge status={status as MachineServiceStatus} />;
+    default:
+      return <span className="text-sm text-muted-foreground">Status: {status || "-"}</span>;
+  }
+}
 
 export default function MapaPage() {
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -133,9 +153,7 @@ export default function MapaPage() {
                 </p>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">
-                Status: {String(selected.status ?? "-")}
-              </p>
+              <SelectedFeatureStatus selected={selected} />
             )}
           </div>
         )}

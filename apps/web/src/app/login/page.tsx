@@ -1,14 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import {
-  ClipboardList,
-  MapPin,
-  Siren,
-  Sprout,
-  Tractor,
-  Trees,
-} from "lucide-react";
+import { Sprout } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -125,75 +118,38 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <div className="order-1 relative hidden flex-1 items-center justify-center overflow-hidden bg-[oklch(0.28_0.07_152)] lg:flex">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,color-mix(in_oklch,white_10%,transparent),transparent_40%),radial-gradient(circle_at_85%_80%,color-mix(in_oklch,white_8%,transparent),transparent_45%)]"
-        />
-
-        <Sprout
-          aria-hidden
-          className="absolute left-[12%] top-[16%] size-8 text-white/15"
-        />
-        <Tractor
-          aria-hidden
-          className="absolute right-[14%] top-[22%] size-10 text-white/15"
-        />
-        <MapPin
-          aria-hidden
-          className="absolute left-[18%] bottom-[20%] size-7 text-white/15"
-        />
-        <Trees
-          aria-hidden
-          className="absolute right-[10%] bottom-[28%] size-9 text-white/15"
-        />
-        <Siren
-          aria-hidden
-          className="absolute left-[8%] top-[52%] size-6 text-white/10"
-        />
-        <ClipboardList
-          aria-hidden
-          className="absolute right-[22%] top-[58%] size-6 text-white/10"
-        />
-
-        <div className="relative z-10 flex w-full max-w-md flex-col items-center px-10 text-center">
-          <div className="w-full rounded-2xl border border-white/15 bg-white/10 p-4 shadow-2xl backdrop-blur-sm">
-            <div className="mb-4 flex items-center gap-1.5 px-1">
-              <span className="size-2.5 rounded-full bg-white/30" />
-              <span className="size-2.5 rounded-full bg-white/30" />
-              <span className="size-2.5 rounded-full bg-white/30" />
-            </div>
-            <div className="rounded-xl bg-card p-5 text-left shadow-lg">
-              <div className="mb-4 flex items-center gap-2.5">
-                <div className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <Sprout className="size-4.5" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-card-foreground">
-                    Indicadores
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Sidrolandia - MS
-                  </p>
-                </div>
+      <div className="order-1 relative hidden flex-1 items-center justify-center bg-[oklch(0.28_0.07_152)] lg:flex">
+        <div className="flex w-full max-w-md flex-col items-center px-10 text-center">
+          <div className="w-full rounded-xl bg-card p-5 text-left shadow-lg">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <Sprout className="size-4.5" />
               </div>
-              <div className="grid grid-cols-2 gap-2.5">
-                <div className="rounded-lg bg-muted/60 p-3">
-                  <p className="text-lg font-semibold text-card-foreground">1.284</p>
-                  <p className="text-xs text-muted-foreground">Produtores</p>
-                </div>
-                <div className="rounded-lg bg-muted/60 p-3">
-                  <p className="text-lg font-semibold text-card-foreground">42</p>
-                  <p className="text-xs text-muted-foreground">Solicitacoes</p>
-                </div>
-                <div className="rounded-lg bg-muted/60 p-3">
-                  <p className="text-lg font-semibold text-card-foreground">7</p>
-                  <p className="text-xs text-muted-foreground">Ocorrencias</p>
-                </div>
-                <div className="rounded-lg bg-muted/60 p-3">
-                  <p className="text-lg font-semibold text-card-foreground">5</p>
-                  <p className="text-xs text-muted-foreground">Maquinas ativas</p>
-                </div>
+              <div>
+                <p className="text-sm font-semibold text-card-foreground">
+                  Indicadores
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Sidrolandia - MS
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="rounded-lg bg-muted/60 p-3">
+                <p className="text-lg font-semibold text-card-foreground">1.284</p>
+                <p className="text-xs text-muted-foreground">Produtores</p>
+              </div>
+              <div className="rounded-lg bg-muted/60 p-3">
+                <p className="text-lg font-semibold text-card-foreground">42</p>
+                <p className="text-xs text-muted-foreground">Solicitacoes</p>
+              </div>
+              <div className="rounded-lg bg-muted/60 p-3">
+                <p className="text-lg font-semibold text-card-foreground">7</p>
+                <p className="text-xs text-muted-foreground">Ocorrencias</p>
+              </div>
+              <div className="rounded-lg bg-muted/60 p-3">
+                <p className="text-lg font-semibold text-card-foreground">5</p>
+                <p className="text-xs text-muted-foreground">Maquinas ativas</p>
               </div>
             </div>
           </div>

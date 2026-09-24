@@ -1,10 +1,10 @@
 import type { LucideIcon } from "lucide-react";
 
 const STATUS_STYLES = {
-  good: { dot: "#0ca30c", label: "Em dia" },
-  warning: { dot: "#fab219", label: "Atencao" },
-  serious: { dot: "#ec835a", label: "Requer acao" },
-  critical: { dot: "#d03b3b", label: "Critico" },
+  good: { dot: "bg-status-good", label: "Em dia" },
+  warning: { dot: "bg-status-warning", label: "Atencao" },
+  serious: { dot: "bg-status-serious", label: "Requer acao" },
+  critical: { dot: "bg-status-critical", label: "Critico" },
 } as const;
 
 interface StatTileProps {
@@ -32,10 +32,7 @@ export function StatTile({ label, value, icon: Icon, status }: StatTileProps) {
       </p>
       {statusStyle && (
         <div className="mt-2 flex items-center gap-1.5">
-          <span
-            className="size-1.5 rounded-full"
-            style={{ background: statusStyle.dot }}
-          />
+          <span className={`size-1.5 rounded-full ${statusStyle.dot}`} />
           <span className="text-xs text-muted-foreground">
             {statusStyle.label}
           </span>

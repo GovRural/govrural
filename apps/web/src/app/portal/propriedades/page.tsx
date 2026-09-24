@@ -18,11 +18,12 @@ import { useAuthStore } from "@/stores/auth-store";
 
 export default function PortalPropertiesPage() {
   const router = useRouter();
-  const { accessToken, user } = useAuthStore();
+  const { accessToken, user, hasHydrated } = useAuthStore();
 
   useEffect(() => {
+    if (!hasHydrated) return;
     if (!user) router.replace("/login");
-  }, [user, router]);
+  }, [hasHydrated, user, router]);
 
   const query = useQuery({
     queryKey: ["portal-properties"],
@@ -33,7 +34,7 @@ export default function PortalPropertiesPage() {
       }),
   });
 
-  if (!user) return null;
+  if (!hasHydrated || !user) return null;
 
   return (
     <div className="flex flex-1 flex-col gap-4 bg-background p-6">

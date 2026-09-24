@@ -1,0 +1,13 @@
+{
+  "name": "@govrural/devtools",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Ferramentas de desenvolvimento (nao usadas em produção) - hoje so o script de screenshot para o Claude analisar telas do apps/web visualmente.",
+  "scripts": {
+    "screenshot": "node screenshot.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}

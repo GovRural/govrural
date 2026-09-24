@@ -68,7 +68,8 @@ export function MapView({ data, onFeatureClick }: MapViewProps) {
     for (const feature of data.features) {
       const [lng, lat] = feature.geometry.coordinates;
       const layer = String(feature.properties.layer ?? "property");
-      const color = (LAYER_COLORS as Record<string, string>)[layer] ?? "#6b7280";
+      const color =
+        (LAYER_COLORS as Record<string, string>)[layer] ?? "var(--muted-foreground)";
 
       const el = document.createElement("div");
       el.style.width = "16px";

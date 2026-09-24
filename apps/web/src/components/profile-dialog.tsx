@@ -144,6 +144,7 @@ function ProfileDataForm({ user }: { user: AppUser }) {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
+            aria-label="Alterar foto"
             className="absolute -bottom-1 -right-1 flex size-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
           >
             <Camera className="size-3.5" />

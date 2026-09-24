@@ -85,8 +85,8 @@ export function NewPropertyDialog({
           <DialogTitle>Nova propriedade</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
+        <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-2 sm:col-span-2">
             <Label htmlFor="name">Nome</Label>
             <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} />
           </div>
@@ -125,32 +125,30 @@ export function NewPropertyDialog({
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="latitude">Latitude</Label>
-              <Input
-                id="latitude"
-                type="number"
-                step="0.0001"
-                value={latitude}
-                onChange={(e) => setLatitude(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="longitude">Longitude</Label>
-              <Input
-                id="longitude"
-                type="number"
-                step="0.0001"
-                value={longitude}
-                onChange={(e) => setLongitude(e.target.value)}
-              />
-            </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="latitude">Latitude</Label>
+            <Input
+              id="latitude"
+              type="number"
+              step="0.0001"
+              value={latitude}
+              onChange={(e) => setLatitude(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="longitude">Longitude</Label>
+            <Input
+              id="longitude"
+              type="number"
+              step="0.0001"
+              value={longitude}
+              onChange={(e) => setLongitude(e.target.value)}
+            />
           </div>
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}
 
-          <Button type="submit" disabled={mutation.isPending}>
+          <Button type="submit" disabled={mutation.isPending} className="sm:col-span-2">
             {mutation.isPending ? "Criando..." : "Criar propriedade"}
           </Button>
         </form>

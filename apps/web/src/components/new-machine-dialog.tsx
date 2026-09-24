@@ -66,13 +66,13 @@ export function NewMachineDialog({ open, onOpenChange }: NewMachineDialogProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Nova maquina</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <div className="flex flex-col gap-2">
+        <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-2 sm:col-span-2">
             <Label htmlFor="name">Nome</Label>
             <Input
               id="name"
@@ -93,14 +93,6 @@ export function NewMachineDialog({ open, onOpenChange }: NewMachineDialogProps) 
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="brand">Marca (opcional)</Label>
-            <Input id="brand" value={brand} onChange={(e) => setBrand(e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="plate">Placa (opcional)</Label>
-            <Input id="plate" value={plate} onChange={(e) => setPlate(e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-2">
             <Label htmlFor="hourlyCost">Custo por hora (R$)</Label>
             <Input
               id="hourlyCost"
@@ -112,8 +104,20 @@ export function NewMachineDialog({ open, onOpenChange }: NewMachineDialogProps) 
               onChange={(e) => setHourlyCost(e.target.value)}
             />
           </div>
-          {error && <p className="text-sm text-destructive">{error}</p>}
-          <Button type="submit" disabled={mutation.isPending} className="self-start">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="brand">Marca (opcional)</Label>
+            <Input id="brand" value={brand} onChange={(e) => setBrand(e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="plate">Placa (opcional)</Label>
+            <Input id="plate" value={plate} onChange={(e) => setPlate(e.target.value)} />
+          </div>
+          {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}
+          <Button
+            type="submit"
+            disabled={mutation.isPending}
+            className="self-start sm:col-span-2"
+          >
             {mutation.isPending ? "Criando..." : "Criar maquina"}
           </Button>
         </form>

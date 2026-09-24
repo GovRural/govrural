@@ -23,6 +23,9 @@ pnpm-debug.log*
 # Testing
 coverage/
 
+# Screenshots gerados pela ferramenta de analise visual (packages/devtools)
+packages/devtools/screenshots/
+
 # IDE
 .vscode/*
 !.vscode/extensions.json

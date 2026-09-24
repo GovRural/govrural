@@ -66,7 +66,12 @@ tamanho da tarefa:
 4. **Implementar**: seguindo os padrões já estabelecidos (ver seções abaixo).
 5. **Verificar**: `tsc --noEmit` e lint em ambos os apps antes de considerar
    pronto; para mudanças de schema, checar migração aplicada e testes de
-   isolamento de tenant existentes ainda passam.
+   isolamento de tenant existentes ainda passam; para mudança de UI, tirar
+   um screenshot real (`packages/devtools/screenshot.mjs` — ver README do
+   pacote) em vez de só inferir a aparência pela classe Tailwind. Um bug
+   real de autenticação (`docs/architecture/ADR/ADR-004-auth-store-hydration.md`)
+   só apareceu porque essa ferramenta força um reload de página; leitura de
+   código sozinha não teria pego.
 
 Para uma mudança de uma linha ("corrija o texto deste botão"), só os passos
 1 e 4 importam. Para um módulo novo, os cinco importam — e vale abrir um ADR

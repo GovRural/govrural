@@ -135,13 +135,14 @@ function initials(email: string) {
 export function AdminShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, accessToken, logout } = useAuthStore();
+  const { user, accessToken, hasHydrated, logout } = useAuthStore();
   const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
+    if (!hasHydrated) return;
     if (!user) router.replace("/login");
     else if (user.role === "PRODUCER") router.replace("/portal");
-  }, [user, router]);
+  }, [hasHydrated, user, router]);
 
   const meQuery = useQuery({
     queryKey: ["me", user?.id],
@@ -150,7 +151,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       apiFetch<AppUser>(`/users/${user!.id}`, { accessToken: accessToken! }),
   });
 
-  if (!user || user.role === "PRODUCER") return null;
+  if (!hasHydrated || !user || user.role === "PRODUCER") return null;
 
   function handleLogout() {
     logout();
@@ -237,7 +238,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 </p>
               </div>
             </button>
-            <Button variant="ghost" size="icon-sm" onClick={handleLogout}>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Sair"
+              onClick={handleLogout}
+            >
               <LogOut className="size-4" />
             </Button>
           </div>
